@@ -42,6 +42,14 @@ const routes = [
     path: "/detail",
     component: () => import("../views/detail/Index"),
   },
+  {
+    path: "/city",
+    component: () => import("../views/city/Index"),
+  },
+  {
+    path: "/store",
+    component: () => import("../views/store/Index"),
+  },
 ];
 
 const router = new VueRouter({

@@ -2,16 +2,13 @@
   <div>
     <!-- 头部 -->
     <van-nav-bar
-      title="7x外卖"
-      right-text="搜索"
+      title="7x么"
+      :fixed="true"
+      :placeholder="true"
       @click-left="onClickLeft"
-      @click-right="onClickRight"
     >
       <template #left>
         <span><van-icon name="location-o" />{{ cityName }}</span>
-      </template>
-      <template #right>
-        <span><van-icon name="search" />搜索</span>
       </template>
     </van-nav-bar>
 
@@ -39,29 +36,89 @@
 
     <!-- 分类模块 -->
     <van-grid clickable :column-num="3">
-      <van-grid-item icon="home-o" text="美食" to="/" />
-      <van-grid-item icon="home-o" text="商超" to="/" />
-      <van-grid-item icon="home-o" text="医药" to="/" />
+      <van-grid-item icon="home-o" text="美食" to="/store?range=美食" />
+      <van-grid-item icon="home-o" text="商超" to="/store?range=商超" />
+      <van-grid-item icon="home-o" text="医药" to="/store?range=医药" />
     </van-grid>
+
+    <!-- 推荐商家 -->
+    <div class="recommend">
+      <h3>新店推荐</h3>
+      <van-card
+        v-for="item in list"
+        :key="item.id"
+        :desc="item.describe"
+        :title="item.name"
+        tag="新店"
+        @click="goToStore(item.id)"
+        thumb="https://img01.yzcdn.cn/vant/ipad.jpeg"
+      >
+        <template #tags>
+          <van-tag
+            v-for="(i, index) in item.activity"
+            :key="index"
+            plain
+            type="danger"
+            >{{ i }}</van-tag
+          >
+        </template>
+      </van-card>
+    </div>
   </div>
 </template>
 
 <script>
-import { Toast } from "vant";
+import router from "../../../router/index";
 
 export default {
   data() {
     return {
       cityName: "杭州",
+
+      //商店
+      list: [
+        {
+          id: 1,
+          name: "米多多韩式炸鸡",
+          describe: "一家专门做炸鸡的好店",
+          activity: ["满50减20"],
+        },
+        {
+          id: 2,
+          name: "米多多韩式炸鸡",
+          describe: "一家专门做炸鸡的好店",
+          activity: ["满50减20", "满100减50"],
+        },
+        {
+          id: 3,
+          name: "米多多韩式炸鸡",
+          describe: "一家专门做炸鸡的好店",
+          activity: ["满50减20"],
+        },
+        {
+          id: 4,
+          name: "米多多韩式炸鸡",
+          describe: "一家专门做炸鸡的好店",
+          activity: ["满50减20"],
+        },
+        {
+          id: 5,
+          name: "米多多韩式炸鸡",
+          describe: "一家专门做炸鸡的好店",
+          activity: ["满50减20"],
+        },
+      ],
     };
   },
 
   methods: {
     onClickLeft() {
-      Toast(this.cityName);
+      router.push({ path: "/city" });
     },
-    onClickRight() {
-      Toast("搜索");
+
+    //跳转至商店页面
+    goToStore(id) {
+      this.$router.push({ path: `/detail?id=${id}` });
     },
   },
 };
@@ -75,6 +132,13 @@ export default {
       height: 200px;
       display: block;
     }
+  }
+}
+.recommend {
+  h3 {
+    font-size: 18px;
+    padding-top: 10px;
+    padding-left: 5px;
   }
 }
 </style>
