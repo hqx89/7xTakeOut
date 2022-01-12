@@ -20,9 +20,9 @@
       />
       <button class="btn">立即登录</button>
       <p class="text">
-        <router-link to="/registry" class="text1">立即注册</router-link>
+        <span @click="registry">立即注册</span>
         &nbsp;|&nbsp;
-        <router-link to="/forgot" class="text1">忘记密码?</router-link>
+        <span @click="forgot">忘记密码?</span>
       </p>
     </div>
   </div>
@@ -35,6 +35,14 @@ export default {
       phoneNumber: "",
       password: "",
     };
+  },
+  methods: {
+    registry() {
+      this.$router.push({ path: "/registry" });
+    },
+    forgot() {
+      this.$router.push({ path: "/forgot" });
+    },
   },
 };
 </script>
@@ -102,9 +110,7 @@ export default {
   }
   .text {
     margin-top: -90px;
-    text1 {
-      color: #ecffff;
-    }
+    color: #ecffff;
   }
 }
 </style>

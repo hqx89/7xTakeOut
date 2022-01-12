@@ -36,7 +36,11 @@
 
     <!-- 分类模块 -->
     <van-grid clickable :column-num="3">
-      <van-grid-item icon="home-o" text="美食" to="/store?range=美食" />
+      <van-grid-item
+        icon="../../../assets/img/food.png"
+        text="美食"
+        to="/store?range=美食"
+      />
       <van-grid-item icon="home-o" text="商超" to="/store?range=商超" />
       <van-grid-item icon="home-o" text="医药" to="/store?range=医药" />
     </van-grid>
@@ -140,5 +144,22 @@ export default {
     padding-top: 10px;
     padding-left: 5px;
   }
+}
+@font-face {
+  font-family: "iconfont"; /* project id 3120839 */
+  src: url("");
+  src: url("?#iefix") format("embedded-opentype"),
+    url("//at.alicdn.com/t/font_3120839_lwlth2nhej.woff2") format("woff2"),
+    url("//at.alicdn.com/t/font_3120839_lwlth2nhej.woff") format("woff"),
+    url("//at.alicdn.com/t/font_3120839_lwlth2nhej.ttf") format("truetype"),
+    url("#iconfont") format("svg");
+}
+
+.my-icon {
+  font-family: "my-icon";
+}
+
+.my-icon-extra::before {
+  content: "&#xe621;";
 }
 </style>

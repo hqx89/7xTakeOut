@@ -39,6 +39,10 @@ const routes = [
     component: () => import("../views/login/Index"),
   },
   {
+    path: "/registry",
+    component: () => import("../views/registry/Index"),
+  },
+  {
     path: "/detail",
     component: () => import("../views/detail/Index"),
   },
