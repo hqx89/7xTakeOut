@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="building">
     <van-nav-bar
       title="7x么"
       left-text="返回"
@@ -16,7 +16,7 @@
     <van-tabs>
       <van-tab title="菜品" position="left">
         <!-- 菜品 -->
-        <div class="main">
+        <div class="main" :style="{ '--mainHeight': mainHeight }">
           <van-sidebar v-model="activeKey">
             <van-sidebar-item title="1" />
             <van-sidebar-item title="2" />
@@ -27,7 +27,7 @@
         </div>
         <!-- 结算 -->
         <div class="settlement">
-          <button class="toPay">去结算</button>
+          <button class="toPay" @click="goPay">去结算</button>
           <div class="cart">
             <img src="../../assets/img/cart.png" alt="" />
           </div>
@@ -36,7 +36,18 @@
       </van-tab>
 
       <!-- 评价 -->
-      <van-tab title="评价">评价</van-tab>
+      <van-tab title="评价">
+        <ul class="evaluation">
+          <li>
+            <van-cell value="2022-1-18" label="这家店的味道非常不错">
+              <template #title>
+                <span class="custom-title">小黄同学</span>
+                <van-tag type="danger">4.9</van-tag>
+              </template>
+            </van-cell>
+          </li>
+        </ul>
+      </van-tab>
     </van-tabs>
   </div>
 </template>
@@ -46,17 +57,26 @@ export default {
   data() {
     return {
       activeKey: 0,
+      mainHeight: window.innerHeight - 290 + "px",
     };
   },
   methods: {
     onClickLeft() {
       this.$router.go(-1);
     },
+    goPay() {
+      this.$router.push({ path: "/pay" });
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
+.building {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+}
 .top {
   width: 100%;
   height: 150px;
@@ -82,14 +102,11 @@ export default {
     display: flex;
   }
 }
+
 .main {
   width: 100%;
-  position: fixed;
-  top: 240px;
-  right: 0;
-  bottom: 50px;
-  left: 0;
-  overflow: auto;
+  height: var(--mainHeight);
+  background-color: chartreuse;
   display: flex;
   .mean {
     flex: 1;
@@ -128,6 +145,12 @@ export default {
     font-size: 20px;
     font-weight: 600;
     color: white;
+  }
+}
+.evaluation {
+  margin: 10px;
+  li {
+    margin-bottom: 10px;
   }
 }
 </style>

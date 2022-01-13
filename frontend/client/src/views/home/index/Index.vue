@@ -36,13 +36,31 @@
 
     <!-- 分类模块 -->
     <van-grid clickable :column-num="3">
-      <van-grid-item
-        icon="../../../assets/img/food.png"
-        text="美食"
-        to="/store?range=美食"
-      />
-      <van-grid-item icon="home-o" text="商超" to="/store?range=商超" />
-      <van-grid-item icon="home-o" text="医药" to="/store?range=医药" />
+      <van-grid-item text="美食" to="/store?range=美食">
+        <template #icon>
+          <img
+            src="../../../assets/img/food.png"
+            alt=""
+            style="width: 28px; height: 28px"
+          />
+        </template>
+      </van-grid-item>
+      <van-grid-item icon="home-o" text="商超" to="/store?range=商超">
+        <template #icon>
+          <img
+            src="../../../assets/img/46trolley.png"
+            alt=""
+            style="width: 28px; height: 28px"
+          /> </template
+      ></van-grid-item>
+      <van-grid-item icon="home-o" text="医药" to="/store?range=医药">
+        <template #icon>
+          <img
+            src="../../../assets/img/yao.png"
+            alt=""
+            style="width: 28px; height: 28px"
+          /> </template
+      ></van-grid-item>
     </van-grid>
 
     <!-- 推荐商家 -->

@@ -5,8 +5,8 @@
     <van-tabbar v-model="active" :route="true" :placeholder="true">
       <van-tabbar-item to="/home/index" icon="wap-home-o">首页</van-tabbar-item>
       <van-tabbar-item to="/home/search" icon="search">搜索</van-tabbar-item>
-      <van-tabbar-item to="/home/cart" icon="cart-o" badge="5"
-        >购物车</van-tabbar-item
+      <van-tabbar-item to="/home/cart" icon="orders-o" badge="5"
+        >订单</van-tabbar-item
       >
       <van-tabbar-item to="/home/mine" icon="user-o">我的</van-tabbar-item>
     </van-tabbar>

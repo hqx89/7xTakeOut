@@ -54,6 +54,14 @@ const routes = [
     path: "/store",
     component: () => import("../views/store/Index"),
   },
+  {
+    path: "/pay",
+    component: () => import("../views/pay/Index"),
+  },
+  {
+    path: "/oder",
+    component: () => import("../views/oder/Index"),
+  },
 ];
 
 const router = new VueRouter({
