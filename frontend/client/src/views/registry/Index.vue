@@ -12,36 +12,40 @@
       v-model="username"
       @blur="blurName"
     />
-    <p :class="input2 ? 'hidden' : 'failure'">密码验证</p>
+    <p :class="input2 ? 'hidden' : 'failure'">{{ p2 }}</p>
     <input
       type="password"
       name="password"
-      placeholder="密码"
+      placeholder="密码,不少于8位且不多于12位"
       class="password"
       v-model="password"
+      @blur="blurPass"
     />
-    <p :class="input3 ? 'hidden' : 'failure'">确认密码验证</p>
+    <p :class="input3 ? 'hidden' : 'failure'">{{ p3 }}</p>
     <input
       type="password"
       name="password1"
       placeholder="确认密码"
       class="password1"
       v-model="password1"
+      @blur="blurWord"
     />
-    <p :class="input4 ? 'hidden' : 'failure'">手机号验证</p>
+    <p :class="input4 ? 'hidden' : 'failure'">{{ p4 }}</p>
     <input
       type="text"
       name="phoneNumber"
       placeholder="手机号"
       class="phoneNumber"
       v-model="phoneNumber"
+      @blur="blurPhone"
     />
-    <button class="btn">立即注册</button>
+    <button class="btn" @click="registry">立即注册</button>
     <span @click="goToLogin">⬅去登录</span>
   </div>
 </template>
 
 <script>
+import { Notify } from "vant";
 export default {
   data() {
     return {
@@ -49,6 +53,10 @@ export default {
       input2: true,
       input3: true,
       input4: true,
+      flag1: false,
+      flag2: false,
+      flag3: false,
+      flag4: false,
       p1: "XXXX",
       p2: "XXXX",
       p3: "XXXX",
@@ -74,7 +82,66 @@ export default {
           this.p1 = "用户名长度不符合";
         } else {
           this.input1 = true;
+          this.flag1 = true;
         }
+      }
+    },
+    // 密码验证
+    blurPass() {
+      if (!this.password) {
+        this.input2 = false;
+        this.p2 = "密码不能为空";
+      } else {
+        if (this.password.length < 8 || this.password.length > 12) {
+          this.input2 = false;
+          this.p2 = "密码长度不符合";
+        } else {
+          if (this.password1 != "" && this.password !== this.password1) {
+            this.input3 = false;
+            this.p3 = "确认密码不一致";
+          } else {
+            this.input2 = true;
+            this.flag2 = true;
+          }
+        }
+      }
+    },
+    //确认密码验证
+    blurWord() {
+      if (!this.password1) {
+        this.input3 = false;
+        this.p3 = "确认密码不能为空";
+      } else {
+        if (this.password !== this.password1) {
+          this.input3 = false;
+          this.p3 = "确认密码不一致";
+        } else {
+          this.input3 = true;
+          this.flag3 = true;
+        }
+      }
+    },
+    // 手机号验证
+    blurPhone() {
+      if (!this.phoneNumber) {
+        this.input4 = false;
+        this.p4 = "手机号不能为空";
+      } else {
+        if (!/^1[3456789]\d{9}$/.test(this.phoneNumber)) {
+          this.input4 = false;
+          this.p4 = "手机号有误";
+        } else {
+          this.input4 = true;
+          this.flag4 = true;
+        }
+      }
+    },
+    // 注册
+    registry() {
+      if (this.flag1 && this.flag2 && this.flag3 && this.flag4) {
+        this.$router.push({ path: "/login" });
+      } else {
+        Notify({ type: "danger", message: "请将信息填写正确" });
       }
     },
   },

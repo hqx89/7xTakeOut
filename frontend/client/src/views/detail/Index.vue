@@ -23,7 +23,16 @@
             <van-sidebar-item title="3" />
             <van-sidebar-item title="4" />
           </van-sidebar>
-          <div class="mean">111</div>
+          <div class="mean">
+            <van-card
+              price="2.00"
+              desc="描述信息"
+              title="商品标题"
+              thumb="https://img01.yzcdn.cn/vant/ipad.jpeg"
+              v-for="i of 10"
+              :key="i"
+            ></van-card>
+          </div>
         </div>
         <!-- 结算 -->
         <div class="settlement">
@@ -106,11 +115,12 @@ export default {
 .main {
   width: 100%;
   height: var(--mainHeight);
-  background-color: chartreuse;
+  background-color: white;
   display: flex;
   .mean {
     flex: 1;
-    background: red;
+    background: white;
+    overflow: auto;
   }
 }
 .settlement {

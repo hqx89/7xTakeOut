@@ -62,6 +62,10 @@ const routes = [
     path: "/oder",
     component: () => import("../views/oder/Index"),
   },
+  {
+    path: "/address",
+    component: () => import("../views/address/Index"),
+  },
 ];
 
 const router = new VueRouter({

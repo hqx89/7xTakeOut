@@ -2,20 +2,43 @@
   <div>
     <van-nav-bar left-text="返回" left-arrow @click-left="onClickLeft" />
     <!-- 订单状态：未支付、已支付、已完成 -->
-    <h1>待支付</h1>
-    <div class="main">
+    <h1 v-if="state == 0">待支付</h1>
+    <h1 v-if="state == 1">已支付</h1>
+    <h1 v-if="state == 2">订单已送达</h1>
+    <!-- 待支付 -->
+    <div class="main" v-if="state == 0">
       <van-notice-bar color="#1989fa" background="#ecf9ff" left-icon="like-o">
         感谢使用7x么外卖，我们将用心为您服务!
       </van-notice-bar>
       <div class="unpaid">
         <van-cell title="请尽快支付" label="7x骑士专送" />
         <van-grid :column-num="3">
-          <van-grid-item icon="balance-o" text="去支付" />
+          <van-grid-item icon="balance-o" text="去支付" @click="pay" />
           <van-grid-item icon="edit" text="改订单信息" />
           <van-grid-item icon="todo-list-o" text="取消订单" />
         </van-grid>
       </div>
     </div>
+
+    <!-- 已支付 -->
+    <div class="main" v-if="state == 1">
+      <van-notice-bar color="#1989fa" background="#ecf9ff" left-icon="like-o">
+        感谢使用7x么外卖，我们将用心为您服务!
+      </van-notice-bar>
+      <div class="unpaid">
+        <van-cell title="请等待商家接单" label="7x骑士专送" />
+      </div>
+    </div>
+    <!-- 已完成 -->
+    <div class="main" v-if="state == 2">
+      <van-notice-bar color="#1989fa" background="#ecf9ff" left-icon="like-o">
+        感谢使用7x么外卖，我们将用心为您服务!
+      </van-notice-bar>
+      <div class="unpaid">
+        <van-cell title="感谢信任，期待再次光临" label="7x骑士专送" />
+      </div>
+    </div>
+
     <div class="goods">
       <span class="title">店铺名称</span>
       <ul>
@@ -34,12 +57,26 @@
       <van-cell title="送达时间" value="尽快送达" />
       <van-cell title="配送方式" value="7x专送" />
     </div>
+    <van-dialog
+      v-model="show"
+      title="收款码"
+      show-cancel-button
+      @confirm="sure"
+    >
+      <img src="" />
+    </van-dialog>
   </div>
 </template>
 
 <script>
 import { Dialog } from "vant";
 export default {
+  data() {
+    return {
+      show: false,
+      state: 0,
+    };
+  },
   methods: {
     onClickLeft() {
       Dialog.confirm({
@@ -53,6 +90,12 @@ export default {
         .catch(() => {
           // on cancel
         });
+    },
+    pay() {
+      this.show = true;
+    },
+    sure() {
+      this.state = 1;
     },
   },
 };

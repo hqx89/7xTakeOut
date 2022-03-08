@@ -10,9 +10,30 @@
     />
     <!-- 方式切换 -->
     <van-tabs>
-      <van-tab title="外卖配送">
+      <van-tab title="外卖配送" @click="onAdd">
         <!-- 添加地址 -->
-        <van-contact-card type="add" @click="onAdd" />
+        <div class="address">
+          <div class="all" v-show="address != ''">
+            <p class="name">姓名：{{ username }}</p>
+            <p class="phone">手机号：{{ phone }}</p>
+            <p class="place">地址：{{ address }}</p>
+          </div>
+          <van-cell
+            title="添加收货地址"
+            icon="add-o"
+            is-link
+            v-show="address == ''"
+            @click="changeAddress"
+          />
+          <van-action-sheet v-model="show1" title="收货地址">
+            <van-field v-model="username" label="姓名" />
+            <van-field v-model="phone" label="手机号" />
+            <van-field v-model="address" label="市内地址" />
+            <van-button type="default" size="large" @click="onChange"
+              >确认修改</van-button
+            >
+          </van-action-sheet>
+        </div>
         <van-cell title="送达时间" value="立即送出" />
         <van-cell
           title="支付方式"
@@ -57,7 +78,6 @@
           <van-cell title="发票" value="不支持线上开票" />
         </div>
       </van-tab>
-      <van-tab title="到店自取">内容 2</van-tab>
     </van-tabs>
     <!-- 提交订单 -->
     <div class="submit">
@@ -70,11 +90,16 @@
 
 <script>
 import { Dialog } from "vant";
+import { Notify } from "vant";
 export default {
   data() {
     return {
       show: false,
+      show1: false,
       payType: "支付宝",
+      username: "",
+      phone: "",
+      address: "",
     };
   },
   methods: {
@@ -91,18 +116,28 @@ export default {
       this.payType = e.target.innerText;
       this.show = false;
     },
+    onChange() {
+      this.show1 = false;
+    },
+    changeAddress() {
+      this.show1 = true;
+    },
     submit() {
-      Dialog.confirm({
-        title: "温馨提示",
-        message: "请确认是否提交订单",
-      })
-        .then(() => {
-          // on confirm
-          this.$router.push({ path: "/oder" });
+      if (this.address == "") {
+        Notify({ type: "danger", message: "地址不能为空！" });
+      } else {
+        Dialog.confirm({
+          title: "温馨提示",
+          message: "请确认是否提交订单",
         })
-        .catch(() => {
-          // on cancel
-        });
+          .then(() => {
+            // on confirm
+            this.$router.push({ path: "/oder" });
+          })
+          .catch(() => {
+            // on cancel
+          });
+      }
     },
   },
 };
@@ -191,5 +226,19 @@ export default {
   background-color: white;
   padding: 10px 0;
   border-radius: 10px;
+}
+.address {
+  width: 100%;
+  background-color: white;
+  border-bottom: 1px solid steelblue;
+  .all {
+    padding: 20px;
+  }
+  .name,
+  .phone,
+  .place {
+    font-weight: 600;
+    font-size: 14px;
+  }
 }
 </style>
