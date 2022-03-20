@@ -7,7 +7,7 @@
 
     <el-input
       placeholder="请输入用户名"
-      v-model="username"
+      v-model="merchantName"
       clearable
       class="input"
     >
@@ -28,19 +28,41 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
-      username: "",
+      merchantName: "",
       password: "",
     };
   },
   methods: {
     login() {
-      if (this.username === "admin" && this.password === "admin") {
-        this.$router.push({ path: "home" });
+      if (this.merchantName !== "" && this.password !== "") {
+        axios
+          .post("/api/merchants/login", {
+            merchantName: this.merchantName,
+            password: this.password,
+          })
+          .then((res) => {
+            if (res.data.code == 0) {
+              this.$message.error(res.data.msg);
+            } else {
+              this.$message({
+                message: "登录成功!",
+                type: "success",
+              });
+
+              // 设置sessionStorage
+              sessionStorage.setItem("merchantName", this.merchantName);
+
+              setTimeout(() => {
+                this.$router.push({ path: "home" });
+              }, 1000);
+            }
+          });
       } else {
-        this.$message.error("用户名或密码错误!");
+        this.$message.error("内容不能为空!");
       }
     },
     goTo() {

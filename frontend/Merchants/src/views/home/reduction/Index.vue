@@ -2,9 +2,14 @@
   <div class="box">
     <!-- 商品列表 -->
     <el-table :data="tableData" border style="width: 100%" class="form">
-      <el-table-column prop="name" label="商品名称"> </el-table-column>
-      <el-table-column prop="price" label="单价" width="200"> </el-table-column>
-      <el-table-column prop="kind" label="所属类别" width="200">
+      <el-table-column prop="goodsName" label="商品名称"> </el-table-column>
+      <el-table-column prop="type" label="所属类别" width="200">
+      </el-table-column>
+      <el-table-column prop="desc" label="描述信息" width="300">
+      </el-table-column>
+      <el-table-column prop="goodsPrice" label="单价(元)" width="200" sortable>
+      </el-table-column>
+      <el-table-column prop="date" label="添加时间" width="200" sortable>
       </el-table-column>
       <!-- 下架 -->
       <el-table-column fixed="right" label="操作" width="200">
@@ -35,7 +40,7 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="tableData.length"
+      :total="store ? store.goods.length : 0"
       :page-size="8"
       @current-change="handleCurrentChange"
       class="page"
@@ -45,28 +50,38 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       dialogVisible: false,
       flag: false,
-      tableData: [
-        {
-          name: "苹果",
-          price: 17,
-          kind: "水果",
-        },
-      ],
+      tableData: [],
+      list: "",
+      store: [],
     };
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.store = this.storeList.filter((item) => {
+      return item.merchantName == sessionStorage.getItem("merchantName");
+    })[0];
+    if (this.store) {
+      this.tableData = this.store.goods.slice(0, 8);
+    }
+  },
+  computed: {
+    storeList() {
+      return this.$store.state.storeList;
+    },
   },
   methods: {
     handleClick(scope) {
       this.dialogVisible = true;
-      console.log(scope.name);
       this.list = scope;
     },
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.store.goods.slice((n - 1) * 8, n * 8);
     },
     handleClose(done) {
       this.$confirm("确认关闭？")
@@ -78,8 +93,26 @@ export default {
     changeFlag() {
       this.dialogVisible = false;
       this.tableData = this.tableData.filter((item) => {
-        return item.name !== this.list.name;
+        return item.goodsName !== this.list.goodsName;
       });
+
+      const goods = this.store.goods.filter((item) => {
+        return item.goodsName !== this.list.goodsName;
+      });
+
+      axios
+        .post("/api/merchants/inGoods", {
+          merchantName: sessionStorage.getItem("merchantName"),
+          goods: goods,
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.$message({
+              message: "删除成功!",
+              type: "success",
+            });
+          }
+        });
     },
   },
 };

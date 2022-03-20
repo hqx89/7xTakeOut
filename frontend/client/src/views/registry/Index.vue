@@ -46,6 +46,7 @@
 
 <script>
 import { Notify } from "vant";
+import axios from "axios";
 export default {
   data() {
     return {
@@ -139,7 +140,19 @@ export default {
     // 注册
     registry() {
       if (this.flag1 && this.flag2 && this.flag3 && this.flag4) {
-        this.$router.push({ path: "/login" });
+        axios
+          .post("/api/users/register", {
+            username: this.username,
+            password: this.password,
+            phone: this.phoneNumber,
+          })
+          .then((res) => {
+            if (res.data.code == 0) {
+              Notify({ type: "danger", message: res.data.msg });
+            } else {
+              this.$router.push({ path: "/login" });
+            }
+          });
       } else {
         Notify({ type: "danger", message: "请将信息填写正确" });
       }

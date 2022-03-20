@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <div class="input">
-      <el-input placeholder="用户名称" v-model="input" clearable></el-input>
+      <el-input placeholder="联系电话" v-model="input" clearable></el-input>
     </div>
     <el-button type="primary" class="btn" size="small" @click="search"
       >查询</el-button
@@ -12,16 +12,25 @@
 
     <!-- 商家列表 -->
     <el-table :data="tableData" border style="width: 100%" class="form">
-      <el-table-column prop="name" label="订单名称"> </el-table-column>
-      <el-table-column prop="type" label="所属用户" width="200">
+      <el-table-column prop="id" label="订单号" width="230" fixed>
       </el-table-column>
-      <el-table-column prop="time" label="订单价格" width="200">
+      <el-table-column prop="orderName" label="订单内容" width="300">
       </el-table-column>
-      <el-table-column prop="address" label="配送地址" width="200">
+      <el-table-column prop="total" label="订单价格(元)" width="110">
       </el-table-column>
-      <el-table-column label="状态" width="200">
+      <el-table-column prop="takeName" label="收货人" width="150">
+      </el-table-column>
+      <el-table-column prop="takePhone" label="联系电话" width="150">
+      </el-table-column>
+      <el-table-column prop="address" label="配送地址" width="300">
+      </el-table-column>
+      <el-table-column prop="date" label="下单时间" width="200" sortable>
+      </el-table-column>
+      <el-table-column label="状态" width="100" fixed="right">
         <template slot-scope="scope">
-          <p>{{ scope.row.state == 1 ? "已完成" : "未接单" }}</p>
+          <p v-show="scope.row.state == 1" class="red">未接单</p>
+          <p v-show="scope.row.state == 0" class="gray">未支付</p>
+          <p v-show="scope.row.state == 2" class="green">已完成</p>
         </template>
       </el-table-column>
     </el-table>
@@ -30,10 +39,11 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="tableData.length"
-      :page-size="8"
+      :total="order ? order.length : 0"
+      :page-size="5"
       @current-change="handleCurrentChange"
       class="page"
+      :disabled="disabled"
     >
     </el-pagination>
   </div>
@@ -45,34 +55,40 @@ export default {
   data() {
     return {
       input: "",
-      tableData: [
-        {
-          name: "三只松鼠",
-          type: "美食",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 1,
-        },
-        {
-          name: "四只松鼠",
-          type: "医药",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 0,
-        },
-      ],
+      tableData: [],
+      order: [],
+      disabled: false,
     };
   },
   methods: {
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.order.slice((n - 1) * 5, n * 5);
     },
 
     search() {
-      console.log("查询");
+      this.disabled = true;
+      this.tableData = this.order.filter((item) => {
+        return item.takePhone == this.input;
+      });
     },
     reset() {
-      console.log("重置");
+      this.tableData = this.order.slice(0, 5);
+      this.disabled = false;
+      this.input = "";
+    },
+  },
+  created() {
+    this.$store.dispatch("getOrderAsync");
+    this.order = this.orderList.filter((item) => {
+      return item.merchantName == sessionStorage.getItem("merchantName");
+    });
+    if (this.order) {
+      this.tableData = this.order.slice(0, 5);
+    }
+  },
+  computed: {
+    orderList() {
+      return this.$store.state.orderList;
     },
   },
 };
@@ -97,6 +113,15 @@ export default {
   .page {
     float: right;
     margin-top: 10px;
+  }
+  .green {
+    color: greenyellow;
+  }
+  .gray {
+    color: grey;
+  }
+  .red {
+    color: red;
   }
 }
 </style>

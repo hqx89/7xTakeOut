@@ -4,25 +4,25 @@
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>店铺订单数:</h3>
-          <p>20单</p>
+          <p>{{ num }}单</p>
         </div>
       </el-col>
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>店铺营业额:</h3>
-          <p>18000元</p>
+          <p>{{ total }}元</p>
         </div>
       </el-col>
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>店铺商品种类数:</h3>
-          <p>7种</p>
+          <p>{{ kind }}种</p>
         </div>
       </el-col>
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>店铺商品数:</h3>
-          <p>20个</p>
+          <p>{{ goodsNum }}个</p>
         </div>
       </el-col>
     </el-row>
@@ -39,7 +39,14 @@
 <script>
 export default {
   data() {
-    return {};
+    return {
+      order: [],
+      store: [],
+      total: 0,
+      num: 0,
+      kind: 0,
+      goodsNum: 0,
+    };
   },
   methods: {
     drawLine() {
@@ -88,6 +95,37 @@ export default {
           },
         ],
       });
+    },
+  },
+  created() {
+    this.$store.dispatch("getOrderAsync");
+    this.$store.dispatch("getStoreAsync");
+    this.order = this.orderList.filter((item) => {
+      return (
+        item.merchantName == sessionStorage.getItem("merchantName") &&
+        item.state == 2
+      );
+    });
+    this.store = this.storeList.filter((item) => {
+      return item.merchantName == sessionStorage.getItem("merchantName");
+    });
+    if (this.order) {
+      this.num = this.order.length;
+      this.order.forEach((item) => {
+        this.total += +item.total;
+      });
+    }
+    if (this.store) {
+      this.kind = this.store[0].goodsType.length;
+      this.goodsNum = this.store[0].goods.length;
+    }
+  },
+  computed: {
+    orderList() {
+      return this.$store.state.orderList;
+    },
+    storeList() {
+      return this.$store.state.storeList;
     },
   },
   mounted() {

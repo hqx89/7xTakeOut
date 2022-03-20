@@ -5,28 +5,28 @@
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>商家总数:</h3>
-          <p>300家</p>
+          <p>{{ storeList.length }}家</p>
         </div>
       </el-col>
       <!-- 平台用户总数 -->
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>用户总数:</h3>
-          <p>1000位</p>
+          <p>{{ userList.length }}位</p>
         </div>
       </el-col>
       <!-- 平台订单总数 -->
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>订单总数:</h3>
-          <p>1235单</p>
+          <p>{{ number }}单</p>
         </div>
       </el-col>
       <!-- 平台交易总额 -->
       <el-col :span="6">
         <div class="grid-content bg-min">
           <h3>交易总额:</h3>
-          <p>￥37586</p>
+          <p>￥{{ total }}</p>
         </div>
       </el-col>
     </el-row>
@@ -41,7 +41,7 @@
       <!-- 用户分布 -->
       <el-col :span="12">
         <div class="grid-content bg-max">
-          <h3>用户城市分布:</h3>
+          <h3>订单数城市分布:</h3>
           <div id="box2"></div>
         </div>
       </el-col>
@@ -53,8 +53,54 @@
 export default {
   data() {
     return {
-      list: [227, 117, 655],
+      Hangzhou: "",
+      Shanghai: "",
+      Beijing: "",
+      supermarket: "",
+      food: "",
+      pharmacy: "",
+      number: 0,
+      total: 0,
     };
+  },
+  computed: {
+    userList() {
+      return this.$store.state.userList;
+    },
+    storeList() {
+      return this.$store.state.storeList;
+    },
+    orderList() {
+      return this.$store.state.orderList;
+    },
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.$store.dispatch("getUserAsync");
+    this.$store.dispatch("getOrderAsync");
+    this.Hangzhou = this.storeList.filter((item) => {
+      return item.storeCity == "杭州市";
+    }).length;
+    this.Shanghai = this.storeList.filter((item) => {
+      return item.storeCity == "上海市";
+    }).length;
+    this.Beijing = this.storeList.filter((item) => {
+      return item.storeCity == "北京市";
+    }).length;
+    this.food = this.storeList.filter((item) => {
+      return item.storeType == "美食";
+    }).length;
+    this.pharmacy = this.storeList.filter((item) => {
+      return item.storeType == "医药";
+    }).length;
+    this.supermarket = this.storeList.filter((item) => {
+      return item.storeType == "商超";
+    }).length;
+
+    this.number = this.orderList.length;
+    this.orderList.forEach((item) => {
+      this.total += +item.total;
+    });
   },
   methods: {
     // 商户分布
@@ -94,16 +140,16 @@ export default {
               show: false,
             },
             data: [
-              { value: this.list[0], name: "北京" },
-              { value: this.list[1], name: "上海" },
-              { value: this.list[2], name: "杭州" },
+              { value: this.Beijing, name: "北京" },
+              { value: this.Shanghai, name: "上海" },
+              { value: this.Hangzhou, name: "杭州" },
             ],
           },
         ],
       });
     },
 
-    // 用户分布
+    // 商家类型分布
     drawLine2() {
       let myChart = this.$echarts.init(document.getElementById("box2"));
       myChart.setOption({
@@ -140,9 +186,9 @@ export default {
               show: false,
             },
             data: [
-              { value: this.list[0], name: "北京" },
-              { value: this.list[1], name: "上海" },
-              { value: this.list[2], name: "杭州" },
+              { value: this.food, name: "美食" },
+              { value: this.supermarket, name: "商超" },
+              { value: this.pharmacy, name: "医药" },
             ],
           },
         ],

@@ -3,9 +3,15 @@
     <!-- 头部栏 -->
     <div class="header">
       <p class="exit" @click="back">退出</p>
-      <p class="welcome">欢迎您，亲爱的商家</p>
+      <p class="welcome">
+        欢迎您，{{ store.storeName ? store.storeName : "亲爱的商家" }}
+      </p>
       <img
-        src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.cnfq.com%2Fv2016%2Fimages%2FmemberHead.jpg&refer=http%3A%2F%2Fwww.cnfq.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1649042588&t=db18751d57ed53ea35052826c1d1213f"
+        :src="
+          store.imgCode
+            ? store.imgCode
+            : 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.cnfq.com%2Fv2016%2Fimages%2FmemberHead.jpg&refer=http%3A%2F%2Fwww.cnfq.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1649042588&t=db18751d57ed53ea35052826c1d1213f'
+        "
         class="tou"
       />
       <div class="logo">
@@ -59,7 +65,13 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
+  data() {
+    return {
+      store: "",
+    };
+  },
   methods: {
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
@@ -69,7 +81,21 @@ export default {
     },
     back() {
       this.$router.push({ path: "/login" });
+      sessionStorage.removeItem("merchantName");
     },
+  },
+  created() {
+    if (sessionStorage.getItem("merchantName")) {
+      axios
+        .post("/api/merchants/single", {
+          merchantName: sessionStorage.getItem("merchantName"),
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.store = res.data.store;
+          }
+        });
+    }
   },
 };
 </script>

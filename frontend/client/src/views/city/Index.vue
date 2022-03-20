@@ -544,7 +544,8 @@ export default {
 
     //选择城市
     selectCity(e) {
-      console.log(e.target.innerText);
+      this.$store.commit("getCityName", e.target.innerText);
+      localStorage.setItem("cityName", e.target.innerText);
       router.push({ path: "home" });
     },
   },

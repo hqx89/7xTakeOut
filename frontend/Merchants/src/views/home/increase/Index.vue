@@ -13,9 +13,19 @@
         clearable
       ></el-input>
     </div>
+    <div class="desc">
+      <span>描述信息:</span>
+      <el-input
+        type="textarea"
+        :rows="3"
+        placeholder="请输入内容"
+        v-model="desc"
+      >
+      </el-input>
+    </div>
     <div class="kind">
       <span>所属类别:</span>
-      <el-select v-model="kind" clearable placeholder="请选择">
+      <el-select v-model="type" clearable placeholder="请选择">
         <el-option
           v-for="item in options"
           :key="item.value"
@@ -27,74 +37,100 @@
     </div>
     <div class="image">
       <span>图片:</span>
-      <el-upload
-        class="avatar-uploader"
-        action="https://jsonplaceholder.typicode.com/posts/"
-        :show-file-list="false"
-        :on-success="handleAvatarSuccess"
-        :before-upload="beforeAvatarUpload"
-      >
-        <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-      </el-upload>
+      <input @change="uploadPhoto($event)" type="file" />
     </div>
 
     <el-button type="primary" :plain="true" class="btn" @click="add"
-      >提交</el-button
+      >添加商品</el-button
     >
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       goodsName: "",
       goodsPrice: "",
-      kind: "",
-      imageUrl: "",
-      options: [
-        {
-          value: "选项1",
-          label: "黄金糕",
-        },
-        {
-          value: "选项2",
-          label: "双皮奶",
-        },
-      ],
+      type: "",
+      imgCode: "",
+      filesize: "",
+      filename: "",
+      store: "",
+      desc: "",
+      options: [],
     };
   },
-  methods: {
-    handleAvatarSuccess(res, file) {
-      console.log(res);
-      this.imageUrl = URL.createObjectURL(file.raw);
+  computed: {
+    storeList() {
+      return this.$store.state.storeList;
     },
-    beforeAvatarUpload(file) {
-      const isJPG = file.type === "image/jpeg";
-      const isLt2M = file.size / 1024 / 1024 < 2;
-
-      if (!isJPG) {
-        this.$message.error("上传图片只能是 JPG 格式!");
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.store = this.storeList.filter((item) => {
+      return item.merchantName == sessionStorage.getItem("merchantName");
+    });
+    this.store[0].goodsType.forEach((item) => {
+      this.options.push({
+        value: item.goodsTypeName,
+        label: item.goodsTypeName,
+      });
+    });
+  },
+  methods: {
+    uploadPhoto(e) {
+      // 利用fileReader对象获取file
+      const file = e.target.files[0];
+      this.filesize = file.size;
+      this.filename = file.name;
+      if (this.filesize > 2101440) {
+        // 图片大于2MB
+        console.log("图片过大，请使用其它方式上传！");
       }
-      if (!isLt2M) {
-        this.$message.error("上传图片大小不能超过 2MB!");
-      }
-      return isJPG && isLt2M;
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        // 读取到的图片base64 数据编码 将此编码字符串传给后台即可
+        this.imgCode = e.target.result;
+      };
     },
     add() {
+      const time = new Date();
       if (
         this.goodsName !== "" &&
         this.goodsPrice !== "" &&
-        this.kind !== "" &&
-        this.imageUrl !== ""
+        this.type !== "" &&
+        this.desc !== "" &&
+        this.imgCode !== ""
       ) {
-        this.$message({
-          message: "添加成功!",
-          type: "success",
-        });
+        console.log(this.desc);
+        axios
+          .post("/api/merchants/addGoods", {
+            merchantName: sessionStorage.getItem("merchantName"),
+            goodsName: this.goodsName,
+            type: this.type,
+            goodsPrice: this.goodsPrice,
+            imgCode: this.imgCode,
+            desc: this.desc,
+            date: time,
+          })
+          .then((res) => {
+            if (res.data.code == 1) {
+              this.$message({
+                message: "添加成功!",
+                type: "success",
+              });
+              this.goodsName = "";
+              this.goodsPrice = "";
+              this.type = "";
+              this.desc = "";
+              this.imgCode = "";
+            }
+          });
       } else {
-        this.$message.error("不能有空内容");
+        this.$message.error("请将信息填写完整");
       }
     },
   },
@@ -105,6 +141,7 @@ export default {
 .name,
 .price,
 .kind,
+.desc,
 .image {
   width: 300px;
   margin: 30px auto;
@@ -115,31 +152,7 @@ export default {
     margin-bottom: 10px;
   }
 }
-.image {
-  .avatar-uploader .el-upload {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .avatar-uploader .el-upload:hover {
-    border-color: #409eff;
-  }
-  .avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 178px;
-    height: 178px;
-    line-height: 178px;
-    text-align: center;
-  }
-  .avatar {
-    width: 178px;
-    height: 178px;
-    display: block;
-  }
-}
+
 .btn {
   margin: 30px auto;
   width: 200px;

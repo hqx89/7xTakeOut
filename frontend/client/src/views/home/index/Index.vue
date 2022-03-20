@@ -69,15 +69,15 @@
       <van-card
         v-for="item in list"
         :key="item.id"
-        :desc="item.describe"
-        :title="item.name"
+        :desc="item.storeType + '&' + item.storeCity"
+        :title="item.storeName"
         tag="新店"
-        @click="goToStore(item.id)"
-        thumb="https://img01.yzcdn.cn/vant/ipad.jpeg"
+        @click="goToStore(item.merchantName)"
+        :thumb="item.imgCode"
       >
         <template #tags>
           <van-tag
-            v-for="(i, index) in item.activity"
+            v-for="(i, index) in activity"
             :key="index"
             plain
             type="danger"
@@ -95,42 +95,18 @@ import router from "../../../router/index";
 export default {
   data() {
     return {
-      cityName: "杭州",
-
       //商店
-      list: [
-        {
-          id: 1,
-          name: "米多多韩式炸鸡",
-          describe: "一家专门做炸鸡的好店",
-          activity: ["满50减20"],
-        },
-        {
-          id: 2,
-          name: "米多多韩式炸鸡",
-          describe: "一家专门做炸鸡的好店",
-          activity: ["满50减20", "满100减50"],
-        },
-        {
-          id: 3,
-          name: "米多多韩式炸鸡",
-          describe: "一家专门做炸鸡的好店",
-          activity: ["满50减20"],
-        },
-        {
-          id: 4,
-          name: "米多多韩式炸鸡",
-          describe: "一家专门做炸鸡的好店",
-          activity: ["满50减20"],
-        },
-        {
-          id: 5,
-          name: "米多多韩式炸鸡",
-          describe: "一家专门做炸鸡的好店",
-          activity: ["满50减20"],
-        },
-      ],
+      list: "",
+      activity: ["免配送费", "免包装费", "7x联盟高品质保障"],
     };
+  },
+  computed: {
+    cityName() {
+      return this.$store.state.cityName;
+    },
+    storeList() {
+      return this.$store.getters.storeCityList;
+    },
   },
 
   methods: {
@@ -142,6 +118,10 @@ export default {
     goToStore(id) {
       this.$router.push({ path: `/detail?id=${id}` });
     },
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.list = this.storeList.reverse().slice(0, 5);
   },
 };
 </script>

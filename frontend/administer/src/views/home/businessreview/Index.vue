@@ -2,12 +2,14 @@
   <div class="box">
     <!-- 商家列表 -->
     <el-table :data="tableData" border style="width: 100%" class="form">
-      <el-table-column prop="name" label="商家名称"> </el-table-column>
-      <el-table-column prop="type" label="所属类别" width="200">
+      <el-table-column prop="storeName" label="商家名称"> </el-table-column>
+      <el-table-column prop="merchantName" label="账号" width="200">
       </el-table-column>
-      <el-table-column prop="time" label="申请时间" width="200">
+      <el-table-column prop="storeType" label="所属类别" width="200">
       </el-table-column>
-      <el-table-column prop="address" label="所在地区" width="200">
+      <el-table-column prop="date" label="申请时间" width="200" sortable>
+      </el-table-column>
+      <el-table-column prop="storeCity" label="所在地区" width="200">
       </el-table-column>
       <!-- 审核 -->
       <el-table-column fixed="right" label="操作" width="200">
@@ -23,7 +25,7 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="tableData.length"
+      :total="auditList.length"
       :page-size="8"
       @current-change="handleCurrentChange"
       class="page"
@@ -33,38 +35,45 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
-      tableData: [
-        {
-          name: "三只松鼠",
-          type: "美食",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 1,
-        },
-        {
-          name: "四只松鼠",
-          type: "医药",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 0,
-        },
-      ],
+      tableData: [],
     };
+  },
+  computed: {
+    auditList() {
+      return this.$store.getters.auditList;
+    },
   },
   methods: {
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.auditList.slice((n - 1) * 8, n * 8);
     },
     handleClick(scope) {
       this.tableData = this.tableData.filter((item) => {
-        return item.name !== scope.name;
+        return item.merchantName !== scope.merchantName;
       });
 
       // 审核
+      axios
+        .post("/api/merchants/audit", {
+          merchantName: scope.merchantName,
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.$message({
+              message: res.data.msg,
+              type: "success",
+            });
+          }
+        });
     },
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.tableData = this.auditList.slice(0, 8);
   },
 };
 </script>

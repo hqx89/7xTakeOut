@@ -18,7 +18,7 @@
         class="password"
         placeholder="密码"
       />
-      <button class="btn">立即登录</button>
+      <button class="btn" @click="login">立即登录</button>
       <p class="text">
         <span @click="registry">立即注册</span>
         &nbsp;|&nbsp;
@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import axios from "axios";
+import { Notify } from "vant";
 export default {
   data() {
     return {
@@ -42,6 +44,21 @@ export default {
     },
     forgot() {
       this.$router.push({ path: "/forgot" });
+    },
+    login() {
+      axios
+        .post("/api/users/login", {
+          phone: this.phoneNumber,
+          password: this.password,
+        })
+        .then((res) => {
+          if (res.data.code == 0) {
+            Notify({ type: "danger", message: res.data.msg });
+          } else {
+            this.$router.push({ path: "/home/index" });
+            sessionStorage.setItem("phone", this.phoneNumber);
+          }
+        });
     },
   },
 };

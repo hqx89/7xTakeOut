@@ -18,11 +18,10 @@
     <van-cell-group inset>
       <van-cell title="会员中心" is-link @click="vipTips" />
 
-      <van-cell title="修改个人资料" is-link @click="showPersonal" />
+      <van-cell title="修改昵称" is-link @click="showPersonal" />
       <!-- 修改个人资料 -->
-      <van-action-sheet v-model="show" title="修改个人资料">
+      <van-action-sheet v-model="show" title="修改昵称">
         <van-field v-model="afterName" label="昵称" />
-        <van-field v-model="afterPhone" label="手机号" />
         <van-button type="default" size="large" @click="onChange"
           >确认修改</van-button
         >
@@ -30,7 +29,7 @@
 
       <van-cell title="个人地址" is-link @click="vipTips" />
       <van-cell title="头像修改" is-link @click="vipTips" />
-      <van-cell title="我的订单" is-link @click="vipTips" />
+      <van-cell title="退出登录" is-link @click="exit" />
     </van-cell-group>
   </div>
 </template>
@@ -38,11 +37,12 @@
 <script>
 import { Notify } from "vant";
 import { ImagePreview } from "vant";
+import axios from "axios";
 export default {
   data() {
     return {
-      username: "小黄同学",
-      phone: "15905875662",
+      username: "",
+      phone: "",
       show: false,
       afterName: "",
       afterPhone: "",
@@ -62,9 +62,32 @@ export default {
     },
     onChange() {
       this.username = this.afterName;
-      this.phone = this.afterPhone;
-      this.show = false;
+      axios
+        .post("/api/users/nickname", {
+          username: this.username,
+          phone: sessionStorage.getItem("phone"),
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.show = false;
+            Notify({ type: "success", message: res.data.msg });
+          }
+        });
     },
+    exit() {
+      this.$router.push({ path: "/login" });
+      sessionStorage.removeItem("phone");
+    },
+  },
+  created() {
+    axios
+      .post("/api/users/information", {
+        phone: sessionStorage.getItem("phone"),
+      })
+      .then((res) => {
+        this.username = res.data.user.username;
+        this.phone = res.data.user.phone;
+      });
   },
 };
 </script>

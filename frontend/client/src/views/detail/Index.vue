@@ -8,9 +8,11 @@
     />
     <!-- 商家头部 -->
     <div class="top">
-      <img src="" alt="" />
-      <span class="storeTitle">XXXXX</span>
-      <span class="introduction">XXXXXXXXXXXXXXX</span>
+      <img :src="store.imgCode" alt="" />
+      <span class="storeTitle">{{ store.storeName }}</span>
+      <span class="introduction"
+        >用心改变生活，有捷改变人生；&emsp;&emsp;放心选择，7x外卖</span
+      >
     </div>
     <!-- 商店内容 -->
     <van-tabs>
@@ -18,20 +20,37 @@
         <!-- 菜品 -->
         <div class="main" :style="{ '--mainHeight': mainHeight }">
           <van-sidebar v-model="activeKey">
-            <van-sidebar-item title="1" />
-            <van-sidebar-item title="2" />
-            <van-sidebar-item title="3" />
-            <van-sidebar-item title="4" />
+            <van-sidebar-item
+              v-for="(item, index) of store.goodsType"
+              :title="item.goodsTypeName"
+              :key="index"
+              @click="change(item.goodsTypeName)"
+            />
           </van-sidebar>
           <div class="mean">
             <van-card
-              price="2.00"
-              desc="描述信息"
-              title="商品标题"
-              thumb="https://img01.yzcdn.cn/vant/ipad.jpeg"
-              v-for="i of 10"
-              :key="i"
-            ></van-card>
+              v-for="(item, index) of list"
+              :key="index"
+              :price="item.goodsPrice"
+              :desc="item.desc"
+              :title="item.goodsName"
+              :thumb="item.imgCode"
+            >
+              <template #footer>
+                <van-button size="mini" round class="Btn" @click="reduce(item)"
+                  >-</van-button
+                >
+                <input
+                  type="text"
+                  class="mini"
+                  readonly
+                  v-model="input[item.goodsName]"
+                />
+                <van-button size="mini" round class="Btn" @click="add(item)"
+                  >+</van-button
+                >
+              </template>
+            </van-card>
           </div>
         </div>
         <!-- 结算 -->
@@ -40,18 +59,21 @@
           <div class="cart">
             <img src="../../assets/img/cart.png" alt="" />
           </div>
-          <span class="price">￥0</span>
+          <span class="price">￥{{ total }}</span>
         </div>
       </van-tab>
 
       <!-- 评价 -->
       <van-tab title="评价">
         <ul class="evaluation">
-          <li>
-            <van-cell value="2022-1-18" label="这家店的味道非常不错">
+          <li v-for="(item, index) in order" :key="index">
+            <van-cell
+              :value="item.evaluation[0].date"
+              :label="item.evaluation[0].content"
+            >
               <template #title>
-                <span class="custom-title">小黄同学</span>
-                <van-tag type="danger">4.9</van-tag>
+                <span class="custom-title">{{ item.takeName }}</span>
+                <van-tag type="danger">{{ item.evaluation[0].score }}</van-tag>
               </template>
             </van-cell>
           </li>
@@ -62,21 +84,109 @@
 </template>
 
 <script>
+import Vue from "vue";
+import { Notify } from "vant";
+import axios from "axios";
 export default {
   data() {
     return {
       activeKey: 0,
       mainHeight: window.innerHeight - 290 + "px",
+      store: "",
+      list: [],
+      input: {},
+      // 总价
+      total: 0,
+      menu: "",
+      cart: [],
+      order: [],
     };
+  },
+  computed: {
+    storeCityList() {
+      return this.$store.getters.storeCityList;
+    },
   },
   methods: {
     onClickLeft() {
       this.$router.go(-1);
     },
+    // 去结算
     goPay() {
-      this.$router.push({ path: "/pay" });
+      if (this.total > 0) {
+        for (let i in this.input) {
+          if (this.input[i] > 0) {
+            const item = this.store.goods.filter((item) => {
+              return item.goodsName == i;
+            });
+            this.cart.push({
+              goodsName: i,
+              num: this.input[i],
+              goodsPrice: item[0].goodsPrice,
+              imgCode: item[0].imgCode,
+            });
+          }
+        }
+        this.$router.push({
+          name: "pay",
+          params: {
+            storeName: this.store.storeName,
+            cart: this.cart,
+            total: this.total,
+            merchantName: this.$route.query.id,
+          },
+        });
+        this.cart = [];
+      } else {
+        Notify({ type: "danger", message: "请选购商品" });
+      }
+    },
+    // 切换
+    change(e) {
+      this.list = this.store.goods.filter((item) => {
+        return item.type == e;
+      });
+    },
+    // 减
+    reduce(item) {
+      if (this.input[item.goodsName] > 0) {
+        this.input[item.goodsName]--;
+        this.total -= +item.goodsPrice;
+      }
+    },
+    // 加
+    add(item) {
+      this.input[item.goodsName]++;
+      this.total += +item.goodsPrice;
     },
   },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.store = this.storeCityList.filter((item) => {
+      return item.merchantName == this.$route.query.id;
+    })[0];
+    let e = this.store.goodsType[0].goodsTypeName;
+    this.list = this.store.goods.filter((item) => {
+      return item.type == e;
+    });
+
+    // 给input设置v-model
+    this.store.goods.forEach((item) => {
+      Vue.set(this.input, item.goodsName, 0);
+    });
+
+    axios.get("/api/orders/orders").then((res) => {
+      if (res.data.code == 1) {
+        this.order = res.data.list.filter((item) => {
+          return (
+            item.merchantName == this.$route.query.id &&
+            item.evaluation[0].state == 1
+          );
+        });
+      }
+    });
+  },
+  mounted() {},
 };
 </script>
 
@@ -162,5 +272,15 @@ export default {
   li {
     margin-bottom: 10px;
   }
+}
+.mini {
+  vertical-align: middle;
+  width: 20px;
+  border: none;
+  text-align: center;
+  margin-left: 5px;
+}
+.Btn {
+  vertical-align: middle;
 }
 </style>

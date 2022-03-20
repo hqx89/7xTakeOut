@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <div class="input">
-      <el-input placeholder="用户名" v-model="input" clearable></el-input>
+      <el-input placeholder="手机号" v-model="input" clearable></el-input>
     </div>
     <el-button type="primary" class="btn" size="small" @click="search"
       >查询</el-button
@@ -12,12 +12,15 @@
 
     <!-- 商家列表 -->
     <el-table :data="tableData" border style="width: 100%" class="form">
-      <el-table-column prop="name" label="用户名"> </el-table-column>
-      <el-table-column prop="time" label="创建时间" width="200">
+      <el-table-column prop="username" label="用户名"> </el-table-column>
+
+      <el-table-column prop="phone" label="手机号" width="200">
       </el-table-column>
-      <el-table-column prop="address" label="所在地区" width="200">
+      <el-table-column prop="number" label="订单数" width="200">
       </el-table-column>
-      <el-table-column prop="number" label="订单总数" width="200">
+      <el-table-column prop="total" label="消费总额(元)" width="200">
+      </el-table-column>
+      <el-table-column prop="date" label="注册时间" width="200" sortable>
       </el-table-column>
       <!-- 下架 -->
       <el-table-column fixed="right" label="操作" width="200">
@@ -48,10 +51,11 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="tableData.length"
+      :total="userList.length"
       :page-size="8"
       @current-change="handleCurrentChange"
       class="page"
+      :disabled="disabled"
     >
     </el-pagination>
   </div>
@@ -59,28 +63,26 @@
 
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       input: "",
-      tableData: [
-        {
-          name: "英俊的烦恼",
-          number: "10",
-          time: "2017-1-1",
-          address: "杭州",
-        },
-        {
-          name: "四只松鼠",
-          number: "15",
-          time: "2017-1-1",
-          address: "杭州",
-        },
-      ],
+      tableData: [],
       dialogVisible: false,
       flag: false,
       list: "",
+      disabled: false,
     };
+  },
+  computed: {
+    userList() {
+      return this.$store.state.userList;
+    },
+  },
+  created() {
+    this.$store.dispatch("getUserAsync");
+    this.tableData = this.userList.slice(0, 8);
   },
   methods: {
     handleClick(scope) {
@@ -89,7 +91,7 @@ export default {
       this.list = scope;
     },
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.userList.slice((n - 1) * 8, n * 8);
     },
     handleClose(done) {
       this.$confirm("确认关闭？")
@@ -101,15 +103,36 @@ export default {
     changeFlag() {
       this.dialogVisible = false;
       this.tableData = this.tableData.filter((item) => {
-        return item.name !== this.list.name;
+        return item.phone !== this.list.phone;
       });
+      axios
+        .post("/api/users/delete", {
+          phone: this.list.phone,
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.$message({
+              message: "注销用户成功！",
+              type: "success",
+            });
+          }
+        });
     },
 
     search() {
-      console.log("查询");
+      if (this.input == "") {
+        this.$message.error("搜索内容不能为空");
+      } else {
+        this.tableData = this.userList.filter((item) => {
+          return item.phone == this.input;
+        });
+        this.disabled = true;
+      }
     },
     reset() {
-      console.log("重置");
+      this.tableData = this.userList.slice(0, 8);
+      this.disabled = false;
+      this.input = "";
     },
   },
 };

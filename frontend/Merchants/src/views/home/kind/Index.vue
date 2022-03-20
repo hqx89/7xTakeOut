@@ -18,7 +18,7 @@
       <h3>种类列表:</h3>
       <!-- 种类列表 -->
       <el-table :data="tableData" border style="width: 600px" class="form">
-        <el-table-column prop="name" label="种类名称" width="300">
+        <el-table-column prop="goodsTypeName" label="种类名称" width="300">
         </el-table-column>
         <!-- 下架 -->
         <el-table-column fixed="right" label="操作" width="200">
@@ -49,7 +49,7 @@
       <el-pagination
         background
         layout="prev, pager, next"
-        :total="tableData.length"
+        :total="list ? list.goodsType.length : 0"
         :page-size="5"
         @current-change="handleCurrentChange"
         class="page"
@@ -60,22 +60,50 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       kind: "",
       dialogVisible: false,
       flag: false,
-      tableData: [{ name: "果蔬" }, { name: "饮料" }],
+      list: [],
+      tableData: [],
+      list1: "",
     };
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.list = this.storeList.filter((item) => {
+      return item.merchantName == sessionStorage.getItem("merchantName");
+    })[0];
+    if (this.list) {
+      this.tableData = this.list.goodsType.slice(0, 5);
+      console.log(this.tableData);
+    }
+  },
+  computed: {
+    storeList() {
+      return this.$store.state.storeList;
+    },
   },
   methods: {
     add() {
       if (this.kind !== "") {
-        this.$message({
-          message: "添加成功!",
-          type: "success",
-        });
+        axios
+          .post("/api/merchants/add", {
+            merchantName: sessionStorage.getItem("merchantName"),
+            goodsType: this.kind,
+          })
+          .then((res) => {
+            if (res.data.code == 1) {
+              this.$message({
+                message: "添加成功!",
+                type: "success",
+              });
+              this.kind = "";
+            }
+          });
       } else {
         this.$message.error("内容不能为空!");
       }
@@ -83,10 +111,10 @@ export default {
     handleClick(scope) {
       this.dialogVisible = true;
       console.log(scope.name);
-      this.list = scope;
+      this.list1 = scope;
     },
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.list.slice((n - 1) * 5, n * 5);
     },
     handleClose(done) {
       this.$confirm("确认关闭？")
@@ -98,8 +126,29 @@ export default {
     changeFlag() {
       this.dialogVisible = false;
       this.tableData = this.tableData.filter((item) => {
-        return item.name !== this.list.name;
+        return item.goodsTypeName !== this.list1.goodsTypeName;
       });
+
+      // 删除
+      let goodsType = this.list.goodsType;
+
+      goodsType = goodsType.filter((item) => {
+        return item.goodsTypeName !== this.list1.goodsTypeName;
+      });
+
+      axios
+        .post("/api/merchants/unset", {
+          merchantName: sessionStorage.getItem("merchantName"),
+          goodsType: goodsType,
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.$message({
+              message: "删除成功!",
+              type: "success",
+            });
+          }
+        });
     },
   },
 };

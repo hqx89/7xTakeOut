@@ -27,7 +27,7 @@
           />
           <van-action-sheet v-model="show1" title="收货地址">
             <van-field v-model="username" label="姓名" />
-            <van-field v-model="phone" label="手机号" />
+            <van-field v-model="phone" label="手机号" type="tel" />
             <van-field v-model="address" label="市内地址" />
             <van-button type="default" size="large" @click="onChange"
               >确认修改</van-button
@@ -55,14 +55,14 @@
         </van-action-sheet>
         <!-- 商品块 -->
         <div class="main">
-          <p class="title">店铺名称</p>
+          <p class="title">{{ storeName }}</p>
           <!-- 商品 -->
           <ul>
-            <li>
-              <img src="../../assets/img/cart.png" alt="" />
-              <span class="goodsName">汉堡+黑椒鸡块+鸡米花+中可</span>
-              <span class="goodsPrice">￥62.9</span>
-              <span class="Number">x 2</span>
+            <li v-for="(item, index) in cart" :key="index">
+              <img :src="item.imgCode" alt="" />
+              <span class="goodsName">{{ item.goodsName }}</span>
+              <span class="goodsPrice">￥{{ item.goodsPrice }}</span>
+              <span class="Number">x {{ item.num }}</span>
             </li>
           </ul>
           <van-cell title="包装费" value="￥0" />
@@ -82,7 +82,7 @@
     <!-- 提交订单 -->
     <div class="submit">
       <button class="toSubmit" @click="submit">提交订单</button>
-      <span class="price">XXXX</span>
+      <span class="price">{{ total }}</span>
       <span class="total">合计：<span>￥</span></span>
     </div>
   </div>
@@ -91,15 +91,21 @@
 <script>
 import { Dialog } from "vant";
 import { Notify } from "vant";
+import axios from "axios";
 export default {
   data() {
     return {
+      storeName: this.$route.params.storeName,
+      total: this.$route.params.total,
+      cart: this.$route.params.cart,
       show: false,
       show1: false,
       payType: "支付宝",
       username: "",
       phone: "",
       address: "",
+      orderName: "",
+      id: "",
     };
   },
   methods: {
@@ -131,14 +137,56 @@ export default {
           message: "请确认是否提交订单",
         })
           .then(() => {
+            const a = Date.now() + sessionStorage.getItem("phone");
+            this.id = a;
+            const b = this.cityName + "市" + this.address;
             // on confirm
-            this.$router.push({ path: "/oder" });
+            axios
+              .post("/api/orders/save", {
+                id: this.id,
+                storeName: this.storeName,
+                merchantName: this.$route.params.merchantName,
+                phone: sessionStorage.getItem("phone"),
+                orderName: this.orderName,
+                total: this.total,
+                takeName: this.username,
+                takePhone: this.phone,
+                address: b,
+              })
+              .then((res) => {
+                if (res.data.code == 1) {
+                  console.log(res.data.msg);
+                }
+              });
+            this.$router.push({ path: `/oder?id=${this.id}` });
           })
           .catch(() => {
             // on cancel
           });
       }
     },
+  },
+  computed: {
+    cityName() {
+      return this.$store.state.cityName;
+    },
+  },
+  created() {
+    this.cart.forEach((item, index) => {
+      if (index == 0) {
+        if (item.num == 1) {
+          this.orderName = item.goodsName;
+        } else {
+          this.orderName = item.goodsName + "x" + item.num;
+        }
+      } else {
+        if (item.num == 1) {
+          this.orderName += "+" + item.goodsName;
+        } else {
+          this.orderName += "+" + item.goodsName + "x" + item.num;
+        }
+      }
+    });
   },
 };
 </script>

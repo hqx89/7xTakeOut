@@ -14,6 +14,27 @@
       image="search"
       description="开始搜索吧！"
     />
+
+    <!-- 商店 -->
+    <van-card
+      v-for="item in list"
+      :key="item.id"
+      :desc="item.storeType + '&' + item.storeCity"
+      :title="item.storeName"
+      tag="新店"
+      @click="goToStore(item.merchantName)"
+      :thumb="item.imgCode"
+    >
+      <template #tags>
+        <van-tag
+          v-for="(i, index) in activity"
+          :key="index"
+          plain
+          type="danger"
+          >{{ i }}</van-tag
+        >
+      </template>
+    </van-card>
   </div>
 </template>
 
@@ -24,16 +45,35 @@ export default {
     return {
       value: "",
       list: [],
+      activity: ["免配送费", "免包装费", "7x联盟高品质保障"],
     };
+  },
+  computed: {
+    storeCityList() {
+      return this.$store.getters.storeCityList;
+    },
   },
   methods: {
     onSearch(val) {
-      Toast(val);
+      const reg = eval(`/${val}+/g`);
+      this.storeCityList.forEach((item) => {
+        if (reg.test(item.storeName)) {
+          this.list.push(item);
+        }
+      });
     },
     onCancel() {
-      Toast("取消");
+      Toast("取消搜索");
       this.value = "";
+      this.list = [];
     },
+    //跳转至商店页面
+    goToStore(id) {
+      this.$router.push({ path: `/detail?id=${id}` });
+    },
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
   },
 };
 </script>

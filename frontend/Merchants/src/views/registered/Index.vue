@@ -11,7 +11,7 @@
       <span>账号:</span>
       <el-input
         placeholder="请输入账号，只能为8位数字"
-        v-model="username"
+        v-model="merchantName"
         clearable
       ></el-input>
     </div>
@@ -21,6 +21,7 @@
         placeholder="请输入密码，只能为8位字符"
         v-model="password"
         clearable
+        show-password
       ></el-input>
     </div>
     <div class="city">
@@ -39,80 +40,120 @@
         </el-option>
       </el-select>
     </div>
+    <div class="city">
+      <span>商店类别:</span>
+      <el-select v-model="storeType" clearable placeholder="请选择商店类别">
+        <el-option
+          v-for="item in options1"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        >
+        </el-option>
+      </el-select>
+    </div>
     <div class="image">
-      <span>图片:</span>
-      <el-upload
-        class="avatar-uploader"
-        action="https://jsonplaceholder.typicode.com/posts/"
-        :show-file-list="false"
-        :on-success="handleAvatarSuccess"
-        :before-upload="beforeAvatarUpload"
-      >
-        <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-      </el-upload>
+      <span>商家图片:</span>
+      <input @change="uploadPhoto($event)" type="file" />
     </div>
 
     <el-button type="primary" :plain="true" class="btn" @click="add"
-      >提交</el-button
+      >注册</el-button
     >
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       storeName: "",
-      username: "",
+      merchantName: "",
       password: "",
       city: "",
-      imageUrl: "",
+      storeType: "",
+      imgCode: "",
+      filesize: "",
+      filename: "",
       options: [
         {
-          value: "选项1",
+          value: "北京市",
           label: "北京市",
         },
         {
-          value: "选项2",
+          value: "上海市",
           label: "上海市",
         },
         {
-          value: "选项3",
+          value: "杭州市",
           label: "杭州市",
+        },
+      ],
+      options1: [
+        {
+          value: "商超",
+          label: "商超",
+        },
+        {
+          value: "美食",
+          label: "美食",
+        },
+        {
+          value: "医药",
+          label: "医药",
         },
       ],
     };
   },
   methods: {
-    handleAvatarSuccess(res, file) {
-      console.log(res);
-      this.imageUrl = URL.createObjectURL(file.raw);
-    },
-    beforeAvatarUpload(file) {
-      const isJPG = file.type === "image/jpeg";
-      const isLt2M = file.size / 1024 / 1024 < 2;
-
-      if (!isJPG) {
-        this.$message.error("上传图片只能是 JPG 格式!");
+    uploadPhoto(e) {
+      // 利用fileReader对象获取file
+      const file = e.target.files[0];
+      this.filesize = file.size;
+      this.filename = file.name;
+      if (this.filesize > 2101440) {
+        // 图片大于2MB
+        console.log("图片过大，请使用其它方式上传！");
       }
-      if (!isLt2M) {
-        this.$message.error("上传图片大小不能超过 2MB!");
-      }
-      return isJPG && isLt2M;
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        // 读取到的图片base64 数据编码 将此编码字符串传给后台即可
+        this.imgCode = e.target.result;
+      };
     },
     add() {
       if (
-        this.storeName !== "" &&
-        this.username !== "" &&
-        this.password !== "" &&
-        this.city !== "" &&
-        this.imageUrl !== ""
+        this.storeName != "" &&
+        this.merchantName != "" &&
+        this.password != "" &&
+        this.city != "" &&
+        this.storeType != "" &&
+        this.imgCode != ""
       ) {
-        this.$message({
-          message: "添加成功!",
-          type: "success",
-        });
+        axios
+          .post("/api/merchants/register", {
+            storeName: this.storeName,
+            merchantName: this.merchantName,
+            password: this.password,
+            imgCode: this.imgCode,
+            storeType: this.storeType,
+            storeCity: this.city,
+          })
+          .then((res) => {
+            if (res.data.code == 0) {
+              this.$message.error(res.data.msg);
+            } else {
+              this.$message({
+                message: "注册成功！请耐心等待官方审核",
+                type: "success",
+              });
+              setTimeout(() => {
+                this.$router.push({ path: "/login" });
+              }, 1000);
+            }
+          });
       } else {
         this.$message.error("不能有空内容");
       }

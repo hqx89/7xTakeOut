@@ -6,7 +6,7 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    redirect: "/home",
+    redirect: "login",
   },
   {
     path: "/home",
@@ -18,21 +18,21 @@ const routes = [
       },
       {
         path: "index",
-        component: () =>  import("../views/home/index/Index"),
+        component: () => import("../views/home/index/Index"),
       },
       {
         path: "search",
-        component: () =>  import("../views/home/search/Search"),
+        component: () => import("../views/home/search/Search"),
       },
       {
         path: "cart",
-        component: () =>  import("../views/home/cart/Cart"),
+        component: () => import("../views/home/cart/Cart"),
       },
       {
         path: "mine",
-        component: () =>  import("../views/home/mine/Mine"),
+        component: () => import("../views/home/mine/Mine"),
       },
-    ]
+    ],
   },
   {
     path: "/login",
@@ -56,6 +56,7 @@ const routes = [
   },
   {
     path: "/pay",
+    name: "pay",
     component: () => import("../views/pay/Index"),
   },
   {

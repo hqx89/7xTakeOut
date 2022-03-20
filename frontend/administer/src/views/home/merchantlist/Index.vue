@@ -12,12 +12,14 @@
 
     <!-- 商家列表 -->
     <el-table :data="tableData" border style="width: 100%" class="form">
-      <el-table-column prop="name" label="商家名称"> </el-table-column>
-      <el-table-column prop="type" label="所属类别" width="200">
+      <el-table-column prop="storeName" label="商家名称"> </el-table-column>
+      <el-table-column prop="merchantName" label="账号" width="150">
       </el-table-column>
-      <el-table-column prop="time" label="创建时间" width="200">
+      <el-table-column prop="storeType" label="所属类别" width="150">
       </el-table-column>
-      <el-table-column prop="address" label="所在地区" width="200">
+      <el-table-column prop="date" label="创建时间" width="200" sortable>
+      </el-table-column>
+      <el-table-column prop="storeCity" label="所在地区" width="200">
       </el-table-column>
       <el-table-column label="状态" width="200">
         <template slot-scope="scope">
@@ -57,10 +59,11 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="tableData.length"
+      :total="storeList.length"
       :page-size="8"
       @current-change="handleCurrentChange"
       class="page"
+      :disabled="disabled"
     >
     </el-pagination>
   </div>
@@ -68,30 +71,22 @@
 
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
       input: "",
-      tableData: [
-        {
-          name: "三只松鼠",
-          type: "美食",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 1,
-        },
-        {
-          name: "四只松鼠",
-          type: "医药",
-          time: "2017-1-1",
-          address: "杭州",
-          state: 0,
-        },
-      ],
+      disabled: false,
+      tableData: [],
       dialogVisible: false,
       flag: false,
       list: "",
     };
+  },
+  computed: {
+    storeList() {
+      return this.$store.state.storeList;
+    },
   },
   methods: {
     handleClick(scope) {
@@ -100,7 +95,7 @@ export default {
       this.list = scope;
     },
     handleCurrentChange(n) {
-      console.log(n);
+      this.tableData = this.storeList.slice((n - 1) * 8, n * 8);
     },
     handleClose(done) {
       this.$confirm("确认关闭？")
@@ -112,16 +107,42 @@ export default {
     changeFlag() {
       this.dialogVisible = false;
       this.tableData = this.tableData.filter((item) => {
-        return item.name !== this.list.name;
+        return item.merchantName !== this.list.merchantName;
       });
+      // 下架商家
+      axios
+        .post("/api/merchants/delete", {
+          merchantName: this.list.merchantName,
+        })
+        .then((res) => {
+          if (res.data.code == 1) {
+            this.$message({
+              message: "下架商家成功！",
+              type: "success",
+            });
+          }
+        });
     },
 
     search() {
-      console.log("查询");
+      if (this.input == "") {
+        this.$message.error("搜索内容不能为空");
+      } else {
+        this.tableData = this.storeList.filter((item) => {
+          return item.storeName == this.input;
+        });
+        this.disabled = true;
+      }
     },
     reset() {
-      console.log("重置");
+      this.tableData = this.storeList.slice(0, 8);
+      this.disabled = false;
+      this.input = "";
     },
+  },
+  created() {
+    this.$store.dispatch("getStoreAsync");
+    this.tableData = this.storeList.slice(0, 8);
   },
 };
 </script>
